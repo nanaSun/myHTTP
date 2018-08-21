@@ -2,17 +2,21 @@ let http=require("http")
 let context=require("./context")
 let response=require("./response")
 let request=require("./request")
+//let eventEmit=require("eventEmit")
+let ejs=require("ejs")
+console.log(ejs)
 class myhttp{
     constructor(){
-        this.middleware;//中间件
+        this.middlewares=[];//中间件
         this.context=Object.create(context)
         this.request=Object.create(request)
         this.response=Object.create(response)
     }
     //回调函数
     use(callback){
-        this.middleware=callback;
+        this.middlewares.push(callback);
     }
+    // 封装req和res，顺便加入ctx
     createContext(req,res){
         let ctx=this.context
         
@@ -24,9 +28,26 @@ class myhttp{
 
         return ctx
     }
+    compose(ctx,middlewares){
+        async function dispatch(index){
+            console.log(index)
+            if(index===middlewares.length) return;
+            let fn=middlewares[index]
+            await fn(ctx,()=>dispatch(index+1));
+        }
+        return dispatch(0)
+    }
+    //处理server返回的req和res
     handleRequest(req,res){
+        // 创建上下文，链接http的req和res
         let ctx=this.createContext(req,res)
-        this.middleware(ctx)
+        // 组合执行所有函数
+        this.compose(ctx,this.middlewares).then(()=>{
+            res.end(ctx.body)
+        }).catch(err=>{
+            this.emit('error',err)
+        })
+        
     }
     //各类参数
     listen(...args){
