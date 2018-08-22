@@ -113,7 +113,8 @@ app.use(async (ctx,next)=>{
 })
 ```
 
-## ejs模板，写一个自己的模板views方法84分钟
+## ejs模板，写一个自己的模板views方法
+
 
 ## router
 use也可以处理路径，但是全部塞在use中太过拥挤，于是router出现了！就是把处理路径这一段独立出来了。
