@@ -3,8 +3,7 @@ let context=require("./context")
 let response=require("./response")
 let request=require("./request")
 //let eventEmit=require("eventEmit")
-let ejs=require("ejs")
-console.log(ejs)
+
 class myhttp{
     constructor(){
         this.middlewares=[];//中间件
@@ -33,7 +32,7 @@ class myhttp{
             console.log(index)
             if(index===middlewares.length) return;
             let fn=middlewares[index]
-            await fn(ctx,()=>dispatch(index+1));
+            return await fn(ctx,()=>dispatch(index+1));
         }
         return dispatch(0)
     }
