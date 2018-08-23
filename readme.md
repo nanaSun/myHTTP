@@ -4,6 +4,36 @@
 
 本文github地址：[点我](https://github.com/nanaSun/myHTTP)
 
+我经常在网上看到类似于`KOA VS express`的文章，大家都在讨论哪一个好，哪一个更好。作为小白，我真心看不出他两who更胜一筹。我只知道，我只会跟着官方文档的start做一个DEMO，然后我就会宣称我会用KOA或者express框架了。但是几个礼拜后，我就全忘了。web框架就相当于一个工具，要使用起来，那是分分钟的事。毕竟人家写这个框架就是为了方便大家上手使用。但是这种生硬的照搬模式，不适合我这种理解能力极差的使用者。因此我决定扒一扒源码，通过官方API，自己写一个web框架，其实就相当于“抄”一遍源码，加上自己的理解，从而加深影响。不仅需要知其然，还要需要知其所以然。
+
+我这里选择KOA作为参考范本，只有一个原因！他非常的精简！核心只有4个js文件！基本上就是对createServer的一个封装。
+
+在开始解刨KOA之前，createServer的用法还是需要回顾下的：
+
+```
+const http = require('http');
+let app=http.createServer((req, res) => {
+    //此处省略其他操作
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.body="我是createServer";
+    res.end('okay');
+});
+app.listen(3000)
+```
+
+回顾了createServer，接下来就是解刨KOA的那4个文件了：
+
+* application.js
+    *   这个js主要就是对createServer的封装，其中一个最主要的目的就是将他的callback分离出来，让我们可以通过`app.use(callback);`来调用，其中`callback`大概就是令大家闻风丧胆的中间件（middleWare）了。
+* request.js
+    *   封装createServer中返回的req，主要用于读写属性。
+* response.js
+    *   封装createServer中返回的res，主要用于读写属性。
+* context.js
+    *   这个文件就很重要了，它主要是封装了request和response，用于框架和中间件的沟通。所以他叫上下文，也是有道理的。
+
+好了～开始写框架咯～
+
 ## step1 封装`http.createServer`
 
 先写一个初始版的`application`，让程序先跑起来。这里我们仅仅实现：
@@ -267,7 +297,7 @@ compose(ctx,middlewares){
     return dispatch(0)
 }
 ```
-`return await fn(ctx,()=>dispatch(index+1));`注意此处，这就是为什么我们需要在`next`前面加上await才能生效？作为promise的`fn`已经执行完毕了，如果不等待后方的promise，那么就直接`then`了，后方的`next`就自身自灭了。所以如果是异步的，我们就需要加上`async/await`以保证`next`执行完之后再返回上一个`promise`。不懂？我们看几个例子。
+`return await fn(ctx,()=>dispatch(index+1));`注意此处，这就是为什么我们需要在`next`前面加上await才能生效？作为promise的`fn`已经执行完毕了，如果不等待后方的promise，那么就直接`then`了，后方的`next`就自生自灭了。所以如果是异步的，我们就需要在中间件上加上`async/await`以保证`next`执行完之后再返回上一个`promise`。无法理解？😷了？我们看几个例子。
 
 具体操作如下：
 ```
