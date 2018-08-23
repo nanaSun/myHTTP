@@ -6,4 +6,4 @@ let response={
         this.res.body=value
     }
 }
-module.exports =  response
+module.exports=response
