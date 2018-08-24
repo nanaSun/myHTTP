@@ -1,4 +1,6 @@
-# 这份Koa的简易Router手敲指南请收下
+#这份Koa的简易Router手敲指南请收下
+
+上一期链接——也就是本文的基础，[参考KOA，5步手写一款粗糙的web框架](https://juejin.im/post/5b7e8718e51d4538ca573445)
 
 本文参考仓库：[点我](https://github.com/nanaSun/myHTTP/tree/master/router)
 
@@ -101,7 +103,7 @@ routers(){
 }
 ```
 
-大家有没有很眼熟，和koa中的application.js的回调很像。其实就是一个回调的过程，然后让我我们在使用上增加了很大的便利。
+大家有没有很眼熟，和koa中的application.js的回调很像。其实就是一个回调的过程，封装之后，便于我们使用。
 
 ## STEP3 给路由分个组吧
 
@@ -153,7 +155,7 @@ routers(){
 
 *在中间件上暗搓搓地加一个router的对象，将自己一起传递出去，有么有很机智*
 
-有了`router`的数组对象，那么`use`这个方法就很好实现了，将`page`循环一波，加入当前对象的`page`，就好了。这里再将自己返回，然后就可以愉快地使用链式调用了。
+有了`router`的数组对象，那么`use`这个方法就很好实现了，将`page`循环一波，加入当前对象的`pages`，就好了。这里再将自己返回，然后就可以愉快地使用链式调用了。
 
 ```
  use(path,middleware) {
@@ -167,9 +169,13 @@ routers(){
 
 ## step4 LAST BUT NOT LEAST
 
-大家需要注意，还记得上一期讲的async/await异步吗？如果有任何除了路由地操作都要放在路由上方执行，因为路由只是匹配路径，返回结果，并没有async/await地操作，所以一定注意:
+大家需要注意，还记得上一期讲的async/await异步吗？
 
-这样是有效地，页面返回aaa
+**如果有任何除了路由的操作都要放在路由上方执行，因为路由只是匹配路径，返回结果，并没有async/await操作。**
+
+所以一定注意:
+
+这样是有效的·，页面返回aaa
 ```
 app.use(async (ctx,next)=>{
     await makeAPromise(ctx).then(()=>{next()})
