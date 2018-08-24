@@ -1,4 +1,4 @@
-# 这份Koa的Router手敲指南请收下
+# 这份Koa的简易Router手敲指南请收下
 
 Router其实就是路径匹配，通过匹配路径，返回给用户相应的网站内容。
 
@@ -161,4 +161,26 @@ routers(){
     });
     return router
 }
+```
+
+## step4 LAST BUT NOT LEAST
+
+大家需要注意，还记得上一期讲的async/await异步吗？如果有任何除了路由地操作都要放在路由上方执行，因为路由只是匹配路径，返回结果，并没有async/await地操作，所以一定注意:
+
+这样是有效地，页面返回aaa
+```
+app.use(async (ctx,next)=>{
+    await makeAPromise(ctx).then(()=>{next()})
+})
+...
+app.use(router.routers())
+```
+这样是无效的，页面不会返回aaa
+```
+...
+app.use(router.routers())
+app.use(async(ctx,next)=>{
+    await next()//等待下方完成后再继续执行
+    ctx.body="aaa"
+})
 ```
