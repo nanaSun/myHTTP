@@ -10,12 +10,14 @@ class Router{
     }
     get(path,callback){
         this.pages.push(new Page(path,callback))
+        return this
     }
     use(path,middleware) {
         let router = this;
         middleware.router.pages.forEach(p => {
             router.get(path+p.path,p.callback)
         });
+        return router
     }
     compose(ctx,next,routers){
         function dispatch(index){
@@ -27,8 +29,9 @@ class Router{
     }
     routers(){
         let dispatch = (ctx,next)=>{
-            let path=ctx.path.path    
-            let routers=this.pages.filter(p=>{console.log(p.path);return p.path===path}).map(p=>p.callback)
+            let path=ctx.path
+            console.log(path);
+            let routers=this.pages.filter(p=>{return p.path===path}).map(p=>p.callback)
             this.compose(ctx,next,routers)
         }
         dispatch.router=this
