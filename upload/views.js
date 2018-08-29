@@ -1,9 +1,9 @@
+const fs=require("fs")
+const path=require("path")
+const util=require("util")
+const readFile=util.promisify(fs.readFile)
 function view(p,data){
     let tpl="";
-    const fs=require("fs")
-    const path=require("path")
-    const util=require("util")
-    let readFile = util.promisify(fs.readFile);
     function getTags(){
         let operators = tpl.match(/<%(?!=)([\s\S]*?)%>([\s\S]*?)<%(?!=)([\s\S]*?)%>/ig)||[]
         operators.forEach((element,index )=> {
@@ -38,9 +38,8 @@ function view(p,data){
         return tpl
     }
     return async (ctx,next)=>{
-        // ctx.render是一个promise方法 
-            tpl = fs.readFileSync(path.join(__dirname,p),"utf-8")
-            ctx.body=render(getTags(),data)
+        tpl = await readFile(path.join(__dirname,p),"utf-8")
+        ctx.body=render(getTags(),data)
         await next();
     }
 }

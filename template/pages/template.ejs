@@ -7,12 +7,12 @@
     <title>Document</title>
 </head>
 <body>
-    今天天气好晴朗～
-    <%= test %>
+    <p>字符串模板:<%=test%></p>
     <ul>
-        <% users.forEach(function(user){ %>
-            <li><%= user %></li>
-        <% }); %>
+        <li>for循环</li>
+        <% for(let user of users){ %>
+        <li><%=user%></li>
+        <% } %>
     </ul>
 </body>
 </html>

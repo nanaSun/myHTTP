@@ -27,7 +27,7 @@ class myhttp{
         async function dispatch(index){
             if(index===middlewares.length) return;
             let fn=middlewares[index]
-            await fn(ctx,()=>{dispatch(index+1)});
+            await fn(ctx,()=>dispatch(index+1));
         }
         return dispatch(0)
     }
@@ -36,9 +36,7 @@ class myhttp{
         // 创建上下文，链接http的req和res
         let ctx=this.createContext(req,res)
         // 组合执行所有函数
-        ctx.body="test"
         let r=this.compose(ctx,this.middleWares)
-        
         r.then((err,data)=>{
             res.end(ctx.body)
         })

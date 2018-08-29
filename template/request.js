@@ -13,6 +13,6 @@ let request={
     get query(){
         let { query } = url.parse(this.req.url,true);
         return query
-    },
+    }
 }
 module.exports=request

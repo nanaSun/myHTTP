@@ -12,6 +12,10 @@ class Router{
         this.pages.push(new Page(path,callback))
         return this
     }
+    post(path,callback){
+        this.pages.push(new Page(path,callback))
+        return this
+    }
     use(path,middleware) {
         let router = this;
         middleware.router.pages.forEach(p => {
@@ -21,17 +25,17 @@ class Router{
     }
     compose(ctx,next,routers){
         async function dispatch(index){
-            if(index===routers.length) return next();
+            if(index===routers.length) return await next();
             let router=routers[index]
             await router(ctx,()=>dispatch(index+1));
         }
         return dispatch(0)
     }
-    routers(){
-        let dispatch = async (ctx,next)=>{
+    routes(){
+        let dispatch = (ctx,next)=>{
             let path=ctx.path
             let routers=this.pages.filter(p=>{return p.path===path}).map(p=>p.callback)
-            await this.compose(ctx,next,routers)
+            return this.compose(ctx,next,routers)
         }
         dispatch.router=this
         return dispatch

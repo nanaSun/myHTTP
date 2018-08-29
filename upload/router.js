@@ -31,11 +31,11 @@ class Router{
         }
         return dispatch(0)
     }
-    routers(){
-        let dispatch = async (ctx,next)=>{
+    routes(){
+        let dispatch = (ctx,next)=>{
             let path=ctx.path
             let routers=this.pages.filter(p=>{return p.path===path}).map(p=>p.callback)
-            await this.compose(ctx,next,routers)
+            return this.compose(ctx,next,routers)
         }
         dispatch.router=this
         return dispatch

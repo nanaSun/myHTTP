@@ -1,23 +1,24 @@
-
+const fs=require("fs")
+const path=require("path")
+const util=require("util")
+const readFile=util.promisify(fs.readFile)
 function view(p,data){
     let tpl="";
-    const fs=require("fs")
-    const path=require("path")
-    const util=require("util")
-    let readFile = util.promisify(fs.readFile);
+    let allTags=[];
     function getTags(){
-        let operators = tpl.match(/<%(?!=)([\s\S]*?)%>([\s\S]*?)<%(?!=)([\s\S]*?)%>/ig)
+        let operators = tpl.match(/<%(?!=)([\s\S]*?)%>([\s\S]*?)<%(?!=)([\s\S]*?)%>/ig)||[]
         operators.forEach((element,index )=> {
             tpl=tpl.replace(element,`<!--operator ${index}-->`)
         });
-        let tags=tpl.match(/<%=([\s\S]*?)%>/ig)
+        let tags=tpl.match(/<%=([\s\S]*?)%>/ig)||[]
         tags.forEach((element,index) => {
             tpl=tpl.replace(element,`<!--operator ${index+operators.length}-->`)
         });
-        return [...operators,...tags];
+        allTags=[...operators,...tags];
     }
-    function render(operators,data){
-        let array=operators.map((e,i)=>{
+    function render(){
+        getTags();
+        allTags=allTags.map((e,i)=>{
             let str = `let tmpl=''\r\n`;
             str +=  'tmpl+=`\r\n';
             str += e
@@ -33,15 +34,15 @@ function view(p,data){
             let fnStr = new Function(...keys,str);
             return fnStr(...keys.map((k)=>data[k]));
         })
-        array.forEach((element,index )=> {
+        allTags.forEach((element,index )=> {
            tpl=tpl.replace(`<!--operator ${index}-->`,element)
         });
-        return tpl
     }
-    
-    return async ()=>{
-        tpl = await readFile(path.join(__dirname,"/pages/template.ejs"),"utf-8")
-        return  render(getTags(),data)
-    };
+    return async (ctx,next)=>{
+        tpl = await readFile(path.join(__dirname,p),"utf-8")
+        render();
+        ctx.body=tpl;
+        await next();
+    }
 }
 module.exports=view
