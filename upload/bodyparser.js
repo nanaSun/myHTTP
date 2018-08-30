@@ -7,11 +7,11 @@ Buffer.prototype.split = function (sep) {
     console.log(Buffer.from(sep))
     while (-1!==(index=this.indexOf(sep,pos))) {
       arr.push(this.slice(pos,index));
-      pos = index+len;
+      pos = index+len
     }
     arr.push(this.slice(pos));
     return arr
-  }
+}
   
 function copeData(buffer,boundary){
     let lines = buffer.split(boundary).slice(1,-1);//去除收尾
