@@ -22,6 +22,7 @@ function copeData(buffer,boundary){
         if(head.includes('filename')){ // 这是文件
         //   console.log('-----------------');
         //   console.log(line.slice(head.length + 4, -2));
+            obj["filename"]= head.match(/filename="(\S*)"/)[1];
             obj["file"]= line.slice(head.length + 4, -2)
             //fs.writeFileSync("./myhttp/upload/uploads/test.png",obj.file);
         }else{
@@ -33,9 +34,9 @@ function copeData(buffer,boundary){
     });
     if(obj.start===0){
         console.log("write")
-        fs.writeFileSync("./myhttp/upload/uploads/test.png",obj.file);
+        fs.writeFileSync(`./myhttp/upload/uploads/${obj.filename}`,obj.file);
     }else{
-        fs.appendFileSync("./myhttp/upload/uploads/test.png",obj.file);
+        fs.appendFileSync(`./myhttp/upload/uploads/${obj.filename}`,obj.file);
     }
     if(obj.end===obj.size){
         console.log(obj);
