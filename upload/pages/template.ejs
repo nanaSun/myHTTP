@@ -10,8 +10,69 @@
     <p>我的FORM表单</p>
     <form action="/submit" method="POST" enctype="multipart/form-data">
         <input type="text" name="text">
-        <input type="file" name="aaa" id="">
+        <input type="file" name="text">
         <input type="submit" value="aaa">
     </form>
+    <p>断点续传</p>
+    <input type="file" name="aaa" id="file">
+    <div id="upload">upload</div>
+    <script>
+        let xhr = new XMLHttpRequest();
+        let file=document.getElementById("file")
+        let upload=document.getElementById("upload")
+        let currentSlice=[];
+        let currentIndex=0;
+        let ftype="";
+        let fileData;
+        let range=128;
+        file.addEventListener("change",function(e){
+            for(let f of file.files){
+                for(let i = 0;i<Math.ceil(f.size/range);i++){
+                    let s=i*range,e=s+range
+                    e=e>f.size?f.size:e;
+                    currentSlice.push([s,e])
+                }
+                fileData=f;
+            }
+            enableUpload()
+        })
+        function createFormData(){
+            let formData = new FormData();
+            let start=currentSlice[currentIndex][0]
+            let end=currentSlice[currentIndex][1]
+            formData.append("start", start);
+            formData.append("end", end);
+            formData.append("size", fileData.size);
+            formData.append("file", fileData);
+            return formData;
+        }
+        function uploadFile(){
+            console.log(currentSlice[currentIndex][0],currentSlice[currentIndex][1]);
+            let formData=createFormData()
+            xhr = new XMLHttpRequest();
+            xhr.open("post", "/submit", true);
+            xhr.onreadystatechange = function(){
+                if (xhr.readyState == 4){
+                    currentIndex++;
+                    if(currentIndex<=currentSlice.length-1){
+                        uploadFile()
+                    }
+                }
+            };
+            xhr.send(formData);
+        }
+        function getSetbacks(){
+
+        }
+        function disableUpload(){
+            upload.removeEventListener("click")
+        }
+        function enableUpload(){
+            upload.addEventListener("click",function(){
+                uploadFile()
+                disableUpload()
+            })
+        }
+    </script>
 </body>
 </html>

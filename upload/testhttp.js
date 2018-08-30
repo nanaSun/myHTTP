@@ -17,5 +17,6 @@ router.get("/",view("/pages/template.ejs",{}))
 router.post("/submit",async (ctx,next)=>{
     await next()
 })
+
 app.use(router.routes())
 app.listen(3000)
