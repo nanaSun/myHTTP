@@ -1,7 +1,7 @@
 let myhttp=require("./application")
 let Router=require("./router")
 let view=require("./Views")
-let bodyparser=require("./bodyParser").default
+let bodyparser=require("./bodyParser")
 //读取文件
 function setTime(value,id){
     return new Promise((r,j)=>setTimeout(() => {
