@@ -5,80 +5,177 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
+    <style>
+        table{ width: 600px; text-align: center; border-color:#ea93c7; color:#fda4bf; line-height: 1.5}
+        table td,table th{ width: 200px;}
+       
+        button{ background: #f1725d; color: #fff; border:none; padding: 5px 10px;}
+        .wrapper{width: 600px; }
+        #operation{ text-align: right; padding: 10px;}
+        #operation input{ display: none;}
+        td span{ font-size: 12px; vertical-align: middle;}
+        .process{ position: relative; width:100px; display:inline-block; background:#ccc; height: 18px; border-radius: 9px; overflow: hidden;color: #fff;}
+        .process span{position: absolute; top: 0px; left: 0px; background: #ff244c; height: 100%;}
+        .process b{ position: absolute; width: 100%; text-align: center; top:0px; left: 0px;}
+    </style>
 </head>
 <body>
-    <p style="border:1px solid black; line-height: 1.8; vertical-align: top">
-        <span>aaaaaa</span>
-        <span>aaaaaa</span>
-        <span>aaaaaa</span>
-    </p>
-    <p>我的FORM表单</p>
-    <form action="/submit" method="POST" enctype="multipart/form-data">
-        <input type="text" name="aaa">
-        <input type="file" name="text">
-        <input type="submit" value="aaa">
-    </form>
-    <p>断点续传</p>
-    <input type="file" name="aaa" id="file">
-    <div id="upload">upload</div>
+    <div class="wrapper">
+        <table border="1px"  cellspacing="0">
+            <tr>
+                <td colspan="3">断点续传</td>
+            </tr>
+            <tr>
+                <td>上传文件</td>
+                <td>上传进度</td>
+                <td>操作</td>
+            </tr>
+        </table>
+        <div id="operation"><button id="uploadNewFile">上传新文件</button></div>
+    </div>
+    
     <script>
-        let xhr = new XMLHttpRequest();
-        let file=document.getElementById("file")
-        let upload=document.getElementById("upload")
-        let currentSlice=[];
-        let currentIndex=0;
-        let ftype="";
-        let fileData;
-        let range=128;
-        file.addEventListener("change",function(e){
-            for(let f of file.files){
-                let s=0,e=-1;
-                for(let i = 0;i<Math.ceil(f.size/range);i++){
+        function createNewUpload(wrapper,file){
+            this.fileName=null
+            this.fileProcess=null
+            this.fileOperation=null
+            this.pausedBtn=null
+            this.wrapper=wrapper
+            this.file=file
+            this.fileSize=file.size
+            this.currentIndex=0
+            this.currentSlice=[]
+            this.state=0//0 1complete 2paused
+            this.calculateSize()
+            this.createSlices()
+            
+            this.render()
+            this.bindOperation()
+            this.createUpload()
+            
+            
+        }
+        createNewUpload.prototype={
+            render(){
+                let column=document.createElement("tr")
+                this.fileName=document.createElement("td")
+                this.fileName.innerHTML=this.file.name
+                this.fileProcess=document.createElement("td")
+                this.fileProcess.innerHTML="0%/"+this.fileSize
+                this.fileOperation=document.createElement("td")
+                this.pausedBtn=document.createElement("button")
+                this.pausedBtn.innerHTML="暂停"
+                this.fileOperation.appendChild(this.pausedBtn)
+                column.appendChild(this.fileName)
+                column.appendChild(this.fileProcess)
+                column.appendChild(this.fileOperation)
+                this.wrapper.appendChild(column)
+            },
+            checkState(){
+                let _=this
+                switch (_.state) {
+                    case 0:
+                        _.state=2
+                        _.pausedBtn.innerHTML="开始"
+                        break;
+                    case 1:
+                        _.pausedBtn.innerHTML="上传成功";
+                        break;
+                    case 2:
+                        _.state=0
+                        _.pausedBtn.innerHTML="暂停"
+                        _.createUpload()
+                        break;
+                    default:
+                        break;
+                }
+            },
+            bindOperation(){
+                let _=this
+                _.pausedBtn.addEventListener("click",function(){
+                    _.checkState()
+                })
+            },
+            updateProcess(){
+                let process=Math.round(this.currentIndex/this.currentSlice.length*100)
+                this.fileProcess.innerHTML=`<span class="process"><span style='width:${process}%'></span><b>${process}%</b></span><span>${this.fileSize}</span>`
+            },
+            calculateSize(){
+                let fileSize=this.fileSize/1024;
+                if(fileSize<512){
+                    this.fileSize=Math.round(fileSize)+"KB"
+                } else {
+                    this.fileSize=Math.round(fileSize/1024)+"MB"
+                }
+            },
+            createSlices(){
+                let s=0,e=-1,range=1024;
+                for(let i = 0;i<Math.ceil(this.file.size/range);i++){
                     s=i*range,e=e+range
-                    e=e>f.size-1?f.size-1:e;
-                    currentSlice.push([s,e])
+                    e=e>this.file.size-1?this.file.size-1:e;
+                    this.currentSlice.push([s,e])
                 }
-                fileData=f;
-            }
-            enableUpload()
-        })
-        function createFormData(){
-            let formData = new FormData();
-            let start=currentSlice[currentIndex][0]
-            let end=currentSlice[currentIndex][1]
-            formData.append("start", start);
-            formData.append("end", end);
-            formData.append("size", fileData.size);
-            formData.append("file", fileData);
-            return formData;
-        }
-        function uploadFile(){
-            console.log(currentSlice[currentIndex][0],currentSlice[currentIndex][1]);
-            let formData=createFormData()
-            xhr = new XMLHttpRequest();
-            xhr.open("post", "/submit", true);
-            xhr.onreadystatechange = function(){
-                if (xhr.readyState == 4){
-                    currentIndex++;
-                    if(currentIndex<=currentSlice.length-1){
-                        uploadFile()
+            },
+            createUpload(){
+                let _=this
+                if(_.state===2){
+                    console.log("paused")
+                    return
+                }
+                let formData=this.createFormData()
+                let xhr = new XMLHttpRequest();
+                xhr.open("post", "/submit", true);
+                xhr.onreadystatechange = function(){
+                    if (xhr.readyState == 4&&parseInt(xhr.status)==200){
+                        console.log(xhr)
+                        _.currentIndex++;
+                        if(_.currentIndex<=_.currentSlice.length-1){
+                            setTimeout(()=>{
+                                _.createUpload()
+                            },500)
+                        }else{
+                            _.state=1;
+                            _.checkState()
+                        }
+                        _.updateProcess()
                     }
-                }
-            };
-            xhr.send(formData);
+                };
+                xhr.send(formData);
+            },
+            createFormData(){
+                let formData = new FormData();
+                let start=this.currentSlice[this.currentIndex][0]
+                let end=this.currentSlice[this.currentIndex][1]
+                let fileData=this.file.slice(start,end)
+                console.log(this.file)
+                formData.append("start", start);
+                formData.append("end", end);
+                formData.append("size", this.file.size);
+                formData.append("fileOriName", this.file.name);
+                formData.append("file", fileData);
+                return formData;
+            }
         }
-        function getSetbacks(){
-
-        }
-        function disableUpload(){
-            upload.removeEventListener("click")
-        }
-        function enableUpload(){
-            upload.addEventListener("click",function(){
-                uploadFile()
-                disableUpload()
+        function createFileInput(operation,callback){
+            let file=document.createElement("input")
+            file.name="file"
+            file.type="file"
+            file.addEventListener("change",function(){
+                callback(file.files[0])
+                file.remove();
             })
+            operation.appendChild(file)
+            file.click();
         }
+        let operation=document.getElementById("operation")
+        let uploadNewFile=document.getElementById("uploadNewFile");
+        let table=document.getElementsByTagName("table")[0];
+        let uploadFiles=[];
+        uploadNewFile.addEventListener("click",function(){
+            let file=createFileInput(operation,function(f){
+                uploadFiles.push(new createNewUpload(table,f))
+            })
+        })
     </script>
 </body>
 </html>

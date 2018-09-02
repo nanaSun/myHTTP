@@ -1,0 +1,22 @@
+{
+  "name": "myhttp",
+  "version": "1.0.0",
+  "description": "仅分析大概思路，分析KOA的原理，还有许多类似于node版本的问题，不在此文章的讨论范围内。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nanaSun/myHTTP.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nanaSun/myHTTP/issues"
+  },
+  "homepage": "https://github.com/nanaSun/myHTTP#readme",
+  "dependencies": {
+    "crypto": "^1.0.1"
+  }
+}
